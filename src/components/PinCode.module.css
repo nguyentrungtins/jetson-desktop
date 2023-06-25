@@ -1,0 +1,63 @@
+.wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+}
+.gridContainer {
+  display: flex;
+  height: 100vh;
+  justify-content: flex-start;
+  padding-top: 12vh;
+  flex-direction: column;
+  align-items: center;
+}
+.gridWrapper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  grid-gap: 20px;
+  justify-content: center;
+  align-items: center;
+  width: max-content;
+}
+.btnGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* reverse the order of columns */
+  grid-gap: 20px;
+  margin-top: 10px;
+}
+.btnCancel {
+  grid-column: 2 / 3;
+  font-size: 20px;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+}
+.btnOK {
+  font-size: 20px;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+}
+
+.btnGroup button {
+  background: transparent;
+  border: none;
+  color: white;
+}
+.gridItem:nth-child(10) {
+  grid-column: 2 / 3; /* start at column 3 and end at column 4 */
+}
+.pinTypeDisplay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  height: 50px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 30px;
+}

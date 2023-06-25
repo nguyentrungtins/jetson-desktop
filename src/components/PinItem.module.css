@@ -1,0 +1,17 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  color: white;
+  border-radius: 100%;
+  background: red;
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.3);
+  border: solid 2px rgba(255, 255, 255, 0.2);
+  font-size: 26px;
+}
+.wrapper:active {
+  background: rgba(255, 255, 255, 0.1);
+}
