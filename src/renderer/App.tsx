@@ -14,12 +14,13 @@ import PinCode from '../components/PinCode';
 const MODE_NONE = 0;
 const MODE_PIN = 1;
 const MODE_DOOR = 2;
-const TIME_SHOW_USER = 5000;
+const TIME_SHOW_USER = 15000;
 function Welcome() {
   const [configData, setConfigData] = useState<ISecurityMode[]>([]);
   const [securityMode, setSecurityMode] = useState<number | undefined>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [userItemDisplay, setUserItemDisplay] = useState<boolean>(false);
+  // const [showPinCode, setShowPinCode] = useState<boolean>(false);
   const [isUserCheckIn, setIsUserCheckIn] = useState<boolean>();
   const [userCheckInData, setUserCheckInData] = useState<IUserCheckinData>();
   const [userImg, setUserImg] = useState<string>('');
@@ -65,7 +66,7 @@ function Welcome() {
     setUserName(NAME);
     setUserMail(`${ID}@cyberlogitec.com`);
     setUserId(ID);
-    if (mode === MODE_NONE) {
+    if (mode === 0) {
       openDoor();
       setTimeout(() => {
         setUserItemDisplay(false);
@@ -173,11 +174,11 @@ function Welcome() {
       if (configData) {
         checkSecurityMode(configData);
       }
-      if (securityMode) {
+      if (securityMode !== undefined) {
         showUser(userCheckInData, securityMode);
       }
     }
-  }, [isUserCheckIn]);
+  }, [isUserCheckIn, securityMode]);
 
   // Check if user type correct PIN CODE for Security Mode PIN & DOOR
   // and if does then open the door and clear data
@@ -214,11 +215,15 @@ function Welcome() {
     };
   }, []);
 
-  // Update current time and date
-  setInterval(updateDate, 1000);
-
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateDate();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
   const clickOpenDoorHandler = (e: EventTarget) => {
-    console.log(e);
+    // setShowPinCode(!showPinCode);
+    console.log('Show PinCode');
   };
   // For debug
   const showState = () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { sha256 } from 'js-sha256';
 import { checkPinCode } from 'api/pinCode';
 import styles from './PinCode.module.css';
@@ -15,6 +15,17 @@ export default function PinCode({
   turnOffPinCode: any;
 }) {
   const [pinUserTyping, setPinUserTyping] = useState<number[]>([]);
+  const [countUserTypeIncorrectPIN, setCountUserTypeIncorrectPIN] =
+    useState<number>(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPinUserTyping([]);
+      turnOffPinCode(true);
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const onClickNumber = (num: number) => {
     if (num === -1) {
       const popPinUserTyping = pinUserTyping.slice(0, -1);
@@ -32,20 +43,17 @@ export default function PinCode({
     setPinUserTyping([]);
     if (isUserPinCodeCheckOK) {
       isPinCodeValid(true);
+    } else {
+      setCountUserTypeIncorrectPIN(countUserTypeIncorrectPIN + 1);
+      if (countUserTypeIncorrectPIN === 2) {
+        console.log('Type Incorrect Pin reach limied');
+      }
     }
   };
   const cancelClickHandler = () => {
     setPinUserTyping([]);
     turnOffPinCode(true);
   };
-  // Update current time and date
-  const turnOff = () => {
-    setPinUserTyping([]);
-    turnOffPinCode(true);
-  };
-  setInterval(turnOff, 30000);
-
-  // console.log(pinUserTyping);
 
   return (
     <div className={styles.wrapper}>
