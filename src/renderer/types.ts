@@ -1,5 +1,5 @@
 export interface IConfigs {
-  data: Config[];
+  data: IConfig[];
 }
 
 export interface IConfig {

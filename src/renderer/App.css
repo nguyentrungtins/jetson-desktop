@@ -278,3 +278,7 @@ canvas {
 .email {
   font-size: 4vw;
 }
+.showState {
+  position: relative;
+  z-index: 99999;
+}

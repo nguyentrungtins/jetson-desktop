@@ -2,19 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import io from 'socket.io-client';
+import moment from 'moment-timezone';
 import { IConfig, ISecurityMode, IUserCheckinData } from './types';
 import { getConfigs } from '../api/configs';
 import icon from '../../assets/logo_icon.svg';
 import scanFrame from '../../assets/scan_frame.svg';
 import doorIcon from '../../assets/door_icon.svg';
 import reportIcon from '../../assets/report_icon.svg';
-import moment from 'moment-timezone';
 import { PinCode } from '../components/PinCode';
 
 const MODE_NONE = 0;
 const MODE_PIN = 1;
 const MODE_DOOR = 2;
-const TIME_SHOW_USER = 15000;
+const TIME_SHOW_USER = 5000;
 function Welcome() {
   const [configData, setConfigData] = useState<ISecurityMode[]>([]);
   const [securityMode, setSecurityMode] = useState<number | undefined>();
@@ -31,39 +31,32 @@ function Welcome() {
   const [isUserTypeCorrectPinCode, setIsUserTypeCorrectPinCode] =
     useState<boolean>();
 
-  console.log(isUserTypeCorrectPinCode);
   const socket = io('http://localhost:3000');
   const isPinCodeValid = (isValid: boolean) => {
     setIsUserTypeCorrectPinCode(isValid);
   };
+  const openDoor = () => {
+    socket.emit('doorOpen', 'jetson');
+    socket.emit('homeMessage', 'jetson');
+  };
+  const turnOffShowUserAndResetUserCheckInData = () => {
+    setUserItemDisplay(false);
+    setIsUserCheckIn(false);
+    setUserCheckInData(undefined);
+  };
   const showUser = (data: IUserCheckinData, mode: number) => {
-    console.log('Mode: ', mode);
     setUserItemDisplay(true);
     const { userId: ID, userName: NAME, image: IMAGE } = data;
     setUserImg(IMAGE);
     setUserName(NAME);
     setUserMail(`${ID}@cyberlogitec.com`);
     setUserId(ID);
-    if (mode == MODE_NONE) {
-      console.log('run in 1');
+    if (mode === MODE_NONE) {
+      openDoor();
       setTimeout(() => {
         setUserItemDisplay(false);
+        setIsUserCheckIn(false);
       }, TIME_SHOW_USER);
-    } else {
-      console.log('run in 2');
-      if (isUserTypeCorrectPinCode) {
-        console.log('run in 3');
-        setUserItemDisplay(false);
-      }
-    }
-  };
-  const openDoor = (mode: number, isPinCodeValid: boolean) => {
-    if (mode == MODE_NONE) {
-      socket.emit('doorOpen', 'jetson');
-      socket.emit('homeMessage', 'jetson');
-    } else if (isPinCodeValid) {
-      socket.emit('dooropen', 'jetson');
-      socket.emit('homemessage', 'jetson');
     }
   };
   const startStreaming = async () => {
@@ -99,25 +92,27 @@ function Welcome() {
   const getCurrentDayTime = () => {
     let dayOfWeekNumber: number = (moment().day() || 7) + 1; // returns a number from 2 to 8
     if (dayOfWeekNumber === 9) dayOfWeekNumber = 1; // adjust Sunday to 8
-    const currentTime = moment().format('HH:mm');
-    return { dayOfWeekNumber, currentTime };
+    const currentTimeCheck = moment().format('HH:mm');
+    return { dayOfWeekNumber, currentTimeCheck };
   };
   const checkSecurityMode = (configs: ISecurityMode[]) => {
-    const { dayOfWeekNumber: currentDayNumber, currentTime } =
+    const { dayOfWeekNumber: currentDayNumber, currentTimeCheck } =
       getCurrentDayTime();
+    let mode = 0;
     configs.forEach((day: ISecurityMode) => {
-      if (+day.weekday == currentDayNumber) {
+      if (+day.weekday === currentDayNumber) {
         const isInRange = checkIsInRangeOfTimes(
           day.start,
           day.end,
-          currentTime
+          currentTimeCheck
         );
         if (isInRange) {
-          setSecurityMode(+day.mode);
-          return;
+          // setSecurityMode(+day.mode);
+          mode = +day.mode;
         }
       }
     });
+    setSecurityMode(mode);
   };
   const updateDate = () => {
     const date = moment().format('ddd, MMM D, YYYY');
@@ -130,29 +125,39 @@ function Welcome() {
   useEffect(() => {
     socket.on('checkFace', (data: IUserCheckinData) => {
       setIsUserCheckIn(true);
-      setUserCheckInData(data)
-      // // check security mode
-      // checkSecurityMode(configData);
-      // if (securityMode) {
-      //   showUser(data, securityMode);
-      //   openDoor(securityMode, isUserTypeCorrectPinCode);
-      // }
+      setUserCheckInData(data);
     });
+    // Clean up socket event listeners
+    return () => {
+      socket.off('checkFace');
+    };
   }, []);
 
   useEffect(() => {
-    checkSecurityMode(configData);
-  }, [configData]);
-
-  useEffect(() => {
-    if (isUserCheckIn != undefined && isUserCheckIn && securityMode != undefined) {
-      if (userCheckInData != undefined) {
-        showUser(userCheckInData, securityMode);
-        // openDoor(securityMode, isUserTypeCorrectPinCode);
+    // console.log('user check-in: ', isUserCheckIn);
+    if (userCheckInData && isUserCheckIn) {
+      if (configData) {
+        checkSecurityMode(configData);
+      }
+      if (securityMode === MODE_NONE) {
+        showUser(userCheckInData, MODE_NONE);
+      }
+      if (securityMode === MODE_PIN) {
+        showUser(userCheckInData, MODE_PIN);
+      }
+      if (securityMode === MODE_DOOR) {
+        showUser(userCheckInData, MODE_DOOR);
       }
     }
-  }, [isUserCheckIn, userCheckInData]);
+  }, [isUserCheckIn]);
 
+  useEffect(() => {
+    // console.log('user check-in: ', isUserCheckIn);
+    if (isUserTypeCorrectPinCode) {
+      turnOffShowUserAndResetUserCheckInData();
+      openDoor();
+    }
+  }, [isUserTypeCorrectPinCode]);
   // Fetch configs in the first time access the page
   useEffect(() => {
     let initialConfigs = configData;
@@ -172,7 +177,10 @@ function Welcome() {
       setConfigData(newConfigs);
       checkSecurityMode(newConfigs);
     });
-  }, [configData]);
+    return () => {
+      socket.off('reloadWelcome');
+    };
+  }, []);
 
   // Update current time and date
   setInterval(updateDate, 1000);
@@ -180,13 +188,21 @@ function Welcome() {
   const clickOpenDoorHandler = (e: EventTarget) => {
     console.log(e);
   };
+  const showState = () => {
+    console.log('userCheckIn', isUserCheckIn);
+    console.log('userCheckInData', userCheckInData);
+    console.log('securityMode', securityMode);
+    console.log('userItemDisplay', userItemDisplay);
+  };
 
   return (
     <main>
+      <button className="showState" onClick={showState}>
+        Show State
+      </button>
       <div className="header-wrapper">
         <div className="left-header">
           <img className="logo" src={icon} alt="icon-app" />
-
           <h1 id="date" className="date">
             {currentDate}
           </h1>
