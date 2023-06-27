@@ -64,9 +64,16 @@ function Welcome() {
     const videoDevices = devices.filter((d) => d.kind === 'videoinput');
     const cameraClone = videoDevices.pop();
     // console.log(cameraClone);
+    // Get the screen width and height
+    const screenWidth = screen.width;
+    const screenHeight = screen.height;
+    // console.log(screenWidth);
+    // console.log(screenHeight);
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
         deviceId: { exact: cameraClone?.deviceId },
+        width: screenWidth ? screenWidth : 1080,
+        height: screenHeight ? screenHeight : 1920,
       },
     });
     if (videoRef.current) {
