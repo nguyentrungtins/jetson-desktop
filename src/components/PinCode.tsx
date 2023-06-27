@@ -38,6 +38,13 @@ export default function PinCode({
     setPinUserTyping([]);
     turnOffPinCode(true);
   };
+  // Update current time and date
+  const turnOff = () => {
+    setPinUserTyping([]);
+    turnOffPinCode(true);
+  };
+  setInterval(turnOff, 30000);
+
   // console.log(pinUserTyping);
 
   return (

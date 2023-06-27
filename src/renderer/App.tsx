@@ -35,7 +35,6 @@ function Welcome() {
 
   // Check is PINCODE is OK from child components PinCode
   const isPinCodeValid = (isValid: boolean) => {
-    console.log('from app:', isValid);
     if (isValid) {
       setIsUserTypeCorrectPinCode(true);
     }
