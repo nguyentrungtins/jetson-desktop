@@ -9,7 +9,7 @@ import icon from '../../assets/logo_icon.svg';
 import scanFrame from '../../assets/scan_frame.svg';
 import doorIcon from '../../assets/door_icon.svg';
 import reportIcon from '../../assets/report_icon.svg';
-import { PinCode } from '../components/PinCode';
+import PinCode from '../components/PinCode';
 
 const MODE_NONE = 0;
 const MODE_PIN = 1;
@@ -32,18 +32,33 @@ function Welcome() {
     useState<boolean>();
 
   const socket = io('http://localhost:3000');
+
+  // Check is PINCODE is OK from child components PinCode
   const isPinCodeValid = (isValid: boolean) => {
-    setIsUserTypeCorrectPinCode(isValid);
+    console.log('from app:', isValid);
+    if (isValid) {
+      setIsUserTypeCorrectPinCode(true);
+    }
   };
-  const openDoor = () => {
-    socket.emit('doorOpen', 'jetson');
-    socket.emit('homeMessage', 'jetson');
-  };
+  // Clear data after do all the check
   const turnOffShowUserAndResetUserCheckInData = () => {
     setUserItemDisplay(false);
     setIsUserCheckIn(false);
     setUserCheckInData(undefined);
   };
+
+  const turnOffPinCode = (isCancel: boolean) => {
+    if (isCancel) {
+      setUserItemDisplay(false);
+      turnOffShowUserAndResetUserCheckInData();
+    }
+  };
+  // Emit the socket to server to open the door
+  const openDoor = () => {
+    socket.emit('doorOpen', 'jetson');
+    socket.emit('homeMessage', 'jetson');
+  };
+  // Show user when receive socket user check-face
   const showUser = (data: IUserCheckinData, mode: number) => {
     setUserItemDisplay(true);
     const { userId: ID, userName: NAME, image: IMAGE } = data;
@@ -65,13 +80,20 @@ function Welcome() {
     const cameraClone = videoDevices.pop();
     // console.log(cameraClone);
     // Get the screen width and height
-    const screenWidth = screen.width;
-    const screenHeight = screen.height;
+    let screenWidth = null;
+    let screenHeight = null;
+    try {
+      screenWidth = screen.width;
+      screenHeight = screen.height;
+    } catch (error) {
+      console.log(error);
+    }
     // console.log(screenWidth);
     // console.log(screenHeight);
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
         deviceId: { exact: cameraClone?.deviceId },
+        // Change the video input device based on the screen dimensions
         width: screenWidth ? screenWidth : 1080,
         height: screenHeight ? screenHeight : 1920,
       },
@@ -96,12 +118,15 @@ function Welcome() {
 
     return isInRange;
   };
+  // Get current day and time
   const getCurrentDayTime = () => {
     let dayOfWeekNumber: number = (moment().day() || 7) + 1; // returns a number from 2 to 8
     if (dayOfWeekNumber === 9) dayOfWeekNumber = 1; // adjust Sunday to 8
     const currentTimeCheck = moment().format('HH:mm');
     return { dayOfWeekNumber, currentTimeCheck };
   };
+
+  // Check Security Mode
   const checkSecurityMode = (configs: ISecurityMode[]) => {
     const { dayOfWeekNumber: currentDayNumber, currentTimeCheck } =
       getCurrentDayTime();
@@ -121,6 +146,7 @@ function Welcome() {
     });
     setSecurityMode(mode);
   };
+  // Update Time & Date for showing on the top
   const updateDate = () => {
     const date = moment().format('ddd, MMM D, YYYY');
     const time = moment().format('h:mm A');
@@ -131,6 +157,7 @@ function Welcome() {
   // Receive socket when user check face
   useEffect(() => {
     socket.on('checkFace', (data: IUserCheckinData) => {
+      console.log('user-check-in');
       setIsUserCheckIn(true);
       setUserCheckInData(data);
     });
@@ -140,31 +167,30 @@ function Welcome() {
     };
   }, []);
 
+  //Check user checkin and show user by security mode
   useEffect(() => {
     // console.log('user check-in: ', isUserCheckIn);
     if (userCheckInData && isUserCheckIn) {
       if (configData) {
         checkSecurityMode(configData);
       }
-      if (securityMode === MODE_NONE) {
-        showUser(userCheckInData, MODE_NONE);
-      }
-      if (securityMode === MODE_PIN) {
-        showUser(userCheckInData, MODE_PIN);
-      }
-      if (securityMode === MODE_DOOR) {
-        showUser(userCheckInData, MODE_DOOR);
+      if (securityMode) {
+        showUser(userCheckInData, securityMode);
       }
     }
   }, [isUserCheckIn]);
 
+  // Check if user type correct PIN CODE for Security Mode PIN & DOOR
+  // and if does then open the door and clear data
   useEffect(() => {
     // console.log('user check-in: ', isUserCheckIn);
     if (isUserTypeCorrectPinCode) {
       turnOffShowUserAndResetUserCheckInData();
       openDoor();
+      setIsUserTypeCorrectPinCode(false);
     }
   }, [isUserTypeCorrectPinCode]);
+
   // Fetch configs in the first time access the page
   useEffect(() => {
     let initialConfigs = configData;
@@ -195,6 +221,7 @@ function Welcome() {
   const clickOpenDoorHandler = (e: EventTarget) => {
     console.log(e);
   };
+  // For debug
   const showState = () => {
     console.log('userCheckIn', isUserCheckIn);
     console.log('userCheckInData', userCheckInData);
@@ -205,7 +232,7 @@ function Welcome() {
   return (
     <main>
       <button className="showState" onClick={showState}>
-        Show State
+        State
       </button>
       <div className="header-wrapper">
         <div className="left-header">
@@ -276,8 +303,12 @@ function Welcome() {
           </>
         )}
       </div>
-      {userItemDisplay && securityMode != MODE_NONE && (
-        <PinCode userId={userId} isPinCodeValid={isPinCodeValid} />
+      {userItemDisplay && securityMode !== MODE_NONE && (
+        <PinCode
+          userId={userId}
+          isPinCodeValid={isPinCodeValid}
+          turnOffPinCode={turnOffPinCode}
+        />
       )}
     </main>
   );

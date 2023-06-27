@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { sha256 } from 'js-sha256';
 import { checkPinCode } from 'api/pinCode';
 import styles from './PinCode.module.css';
-import { PinItem } from './PinItem';
+import PinItem from './PinItem';
 
 const PIN_ARRAY = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -1];
-export function PinCode({
+export default function PinCode({
   userId,
   isPinCodeValid,
+  turnOffPinCode,
 }: {
   userId: string;
   isPinCodeValid: any;
+  turnOffPinCode: any;
 }) {
   const [pinUserTyping, setPinUserTyping] = useState<number[]>([]);
   const onClickNumber = (num: number) => {
@@ -22,18 +24,21 @@ export function PinCode({
     }
   };
   const okClickHandler = async () => {
-    setPinUserTyping([]);
+    console.log(pinUserTyping);
     const pinCodeHash = sha256(pinUserTyping.join(''));
     const isUserPinCodeCheckOK = await checkPinCode(userId, pinCodeHash);
+    // console.log(isUserPinCodeCheckOK);
     console.log(isUserPinCodeCheckOK);
+    setPinUserTyping([]);
     if (isUserPinCodeCheckOK) {
       isPinCodeValid(true);
     }
   };
   const cancelClickHandler = () => {
     setPinUserTyping([]);
+    turnOffPinCode(true);
   };
-  console.log(pinUserTyping);
+  // console.log(pinUserTyping);
 
   return (
     <div className={styles.wrapper}>

@@ -1,8 +1,7 @@
-// import { useEffect, useRef, useState } from 'react';
-const EMPTY_PIN_ITEM = -1;
-const BACKSPACE = 'BACKSPACE';
 import styles from './PinItem.module.css';
-export function PinItem({
+const BACKSPACE = -1;
+
+export default function PinItem({
   item,
   onClick,
 }: {
@@ -10,8 +9,12 @@ export function PinItem({
   onClick: (num: number) => void;
 }) {
   return (
-    <div className={styles.wrapper} onClick={() => onClick(item)}>
-      {item != -1 ? <p>{item.toString()}</p> : <p>&#8617;</p>}
-    </div>
+    <button
+      type="button"
+      className={styles.wrapper}
+      onClick={() => onClick(item)}
+    >
+      {item !== BACKSPACE ? <p>{item.toString()}</p> : <p>&#8617;</p>}
+    </button>
   );
 }
