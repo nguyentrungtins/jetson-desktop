@@ -35,11 +35,9 @@ export default function PinCode({
     }
   };
   const okClickHandler = async () => {
-    console.log(pinUserTyping);
     const pinCodeHash = sha256(pinUserTyping.join(''));
     const isUserPinCodeCheckOK = await checkPinCode(userId, pinCodeHash);
     // console.log(isUserPinCodeCheckOK);
-    console.log(isUserPinCodeCheckOK);
     setPinUserTyping([]);
     if (isUserPinCodeCheckOK) {
       isPinCodeValid(true);
