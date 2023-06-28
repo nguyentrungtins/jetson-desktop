@@ -178,7 +178,7 @@ function Welcome() {
         showUser(userCheckInData, securityMode);
       }
     }
-  }, [isUserCheckIn, securityMode]);
+  }, [isUserCheckIn]);
 
   // Check if user type correct PIN CODE for Security Mode PIN & DOOR
   // and if does then open the door and clear data
@@ -215,12 +215,6 @@ function Welcome() {
     };
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      updateDate();
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, []);
   const clickOpenDoorHandler = (e: EventTarget) => {
     // setShowPinCode(!showPinCode);
     console.log('Show PinCode');
@@ -232,6 +226,8 @@ function Welcome() {
     console.log('securityMode', securityMode);
     console.log('userItemDisplay', userItemDisplay);
   };
+  // Update current time and date
+  setTimeout(updateDate, 1000);
 
   return (
     <main>

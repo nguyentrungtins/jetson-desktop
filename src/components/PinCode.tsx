@@ -18,6 +18,7 @@ export default function PinCode({
   const [countUserTypeIncorrectPIN, setCountUserTypeIncorrectPIN] =
     useState<number>(0);
 
+  const [countDownTimer, setCountDownTimer] = useState<number>(30);
   useEffect(() => {
     const timer = setTimeout(() => {
       setPinUserTyping([]);
@@ -48,15 +49,25 @@ export default function PinCode({
       }
     }
   };
+  useEffect(() => {
+    if (pinUserTyping.length === 6) {
+      okClickHandler();
+    }
+  }, [pinUserTyping]);
   const cancelClickHandler = () => {
     setPinUserTyping([]);
     turnOffPinCode(true);
   };
 
+  setTimeout(() => {
+    setCountDownTimer(countDownTimer - 1);
+  }, 1000);
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.gridContainer}>
         <div className={styles.gridBody}>
+          <div className={styles.countDownTimer}>{countDownTimer}s</div>
           <ul className={styles.pinTypeDisplay}>
             {pinUserTyping.map((_, index) => (
               <li key={index}>&#x2022; </li>
