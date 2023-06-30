@@ -1,6 +1,7 @@
-import { IConfigs, ISecurityMode, IConfig } from '../renderer/types';
 import axios from 'axios';
-export const getConfigs = async () => {
+import { IConfigs, IDailySecurityMode, IConfig } from '../renderer/types';
+
+const getConfigs = async () => {
   const configs = await axios.get<IConfigs>(
     'http://localhost:3000/api/v1/config/get-config'
   );
@@ -12,7 +13,7 @@ export const getConfigs = async () => {
       END_DT: end,
       DOR_CTRL_CD: mode,
     } = configForEachDay;
-    const configFilter: ISecurityMode = {
+    const configFilter: IDailySecurityMode = {
       weekday,
       start,
       end,
@@ -22,3 +23,4 @@ export const getConfigs = async () => {
   });
   return newConfigs;
 };
+export default getConfigs;

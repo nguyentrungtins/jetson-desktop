@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { sha256 } from 'js-sha256';
-import { checkPinCode } from 'api/pinCode';
+import checkPinCode from 'api/pinCode';
 import styles from './PinCode.module.css';
 import PinItem from './PinItem';
 
@@ -10,7 +10,7 @@ export default function PinCode({
   isPinCodeValid,
   turnOffPinCode,
 }: {
-  userId: string;
+  userId: string | null;
   isPinCodeValid: any;
   turnOffPinCode: any;
 }) {
@@ -27,7 +27,7 @@ export default function PinCode({
     return () => clearTimeout(timer);
   }, []);
 
-  const onClickNumber = (num: number) => {
+  const onClickNumberHandler = (num: number) => {
     if (num === -1) {
       const popPinUserTyping = pinUserTyping.slice(0, -1);
       setPinUserTyping(popPinUserTyping);
@@ -76,7 +76,7 @@ export default function PinCode({
           <div className={styles.gridWrapper}>
             {PIN_ARRAY.map((pinValue, index) => (
               <div key={index} className={styles.gridItem}>
-                <PinItem item={pinValue} onClick={onClickNumber} />
+                <PinItem item={pinValue} onClick={onClickNumberHandler} />
               </div>
             ))}
           </div>

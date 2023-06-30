@@ -1,7 +1,3 @@
-export interface IConfigs {
-  data: IConfig[];
-}
-
 export interface IConfig {
   CFG_ID: number;
   BX_ID: null | string;
@@ -17,16 +13,17 @@ export interface IConfig {
   UPD_DT: null;
   UPD_USR_ID: null;
 }
-// export type ISecurityMode = Pick<
-//   Config,
-//   'LST_DY_CTNT' | 'ST_DT' | 'END_DT' | 'DOR_CTRL_CD'
-// >;
-export interface ISecurityMode {
+export interface IConfigs {
+  data: IConfig[];
+}
+
+export interface IDailySecurityMode {
   weekday: string;
   start: string;
   end: string;
   mode: string;
 }
+
 export interface IUserCheckinData {
   userId: string;
   userName: string;
@@ -39,12 +36,8 @@ export interface IUserCheckinData {
   updateDate: Date;
   flagSend: number;
 }
-export interface Pincode {
-  data: Data;
-  success: number;
-}
 
-export interface Data {
+export interface PinCodeData {
   USR_ID: string;
   ROLE_ID: null;
   USR_NM: string;
@@ -65,4 +58,9 @@ export interface Data {
   UPD_DT: string;
   UPD_USR: string;
   TYPE: number;
+}
+
+export interface Pincode {
+  data: PinCodeData;
+  success: number;
 }
